@@ -2,6 +2,7 @@
   "name": "frontend-react-template",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@11.6.0",
   "scripts": {
