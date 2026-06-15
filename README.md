@@ -13,8 +13,9 @@ unit tests, Conventional Commits enforcement, and CI wired up out of the box.
 
 ```bash
 pnpm install
-# install git hooks (commit-msg + pre-commit)
-pnpm exec pre-commit install --hook-type pre-commit --hook-type commit-msg
+# install git hooks (commit-msg + pre-commit) — requires the pre-commit tool
+# (https://pre-commit.com): `brew install pre-commit` or `pipx install pre-commit`
+pre-commit install --hook-type pre-commit --hook-type commit-msg
 pnpm dev
 ```
 
