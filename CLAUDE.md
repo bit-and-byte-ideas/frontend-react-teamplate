@@ -31,3 +31,12 @@ Flat config (`eslint.config.js`) extends `@eslint/js` recommended, `typescript-e
 ## React Compiler
 
 Not enabled. See `README.md` if/when adding it.
+
+## Commit hygiene
+
+- **Conventional Commits** are enforced. `commitlint.config.js` extends `@commitlint/config-conventional`, so commit headers must look like `feat: ...`, `fix(scope): ...`, `chore: ...`, etc.
+- **pre-commit framework** (`.pre-commit-config.yaml`) wires three local hooks:
+  - `commit-msg` stage → `pnpm exec commitlint --edit` validates the message.
+  - `pre-commit` stage → `pnpm exec eslint --fix` on staged JS/TS files, then `pnpm exec tsc -b` for a full type-check.
+- New contributors must run `pre-commit install --hook-type pre-commit --hook-type commit-msg` once after cloning.
+- **Do not bypass with `--no-verify`.** A Claude PreToolUse hook (`.claude/hooks/block-no-verify.sh`, wired in `.claude/settings.json`) rejects `git commit --no-verify` and `-n` to keep the gates honest. Fix the underlying hook failure instead.

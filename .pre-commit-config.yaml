@@ -1,0 +1,27 @@
+repos:
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: commitlint
+        description: Validate commit message against Conventional Commits.
+        entry: pnpm exec commitlint --edit
+        language: system
+        stages: [commit-msg]
+        pass_filenames: true
+
+      - id: eslint
+        name: eslint (staged)
+        description: Lint and auto-fix staged JS/TS files.
+        entry: pnpm exec eslint --fix --no-warn-ignored
+        language: system
+        files: \.(ts|tsx|js|jsx|mjs|cjs)$
+        pass_filenames: true
+
+      - id: tsc
+        name: tsc -b
+        description: Type-check the project.
+        entry: pnpm exec tsc -b
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+        require_serial: true
