@@ -1,4 +1,40 @@
-# React + TypeScript + Vite
+# frontend-react-template
+
+A React 19 + TypeScript + Vite starter template with linting, type-checking,
+unit tests, Conventional Commits enforcement, and CI wired up out of the box.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 24+
+- [pnpm](https://pnpm.io/) (this repo pins it via the `packageManager` field —
+  run `corepack enable pnpm` if you don't have it)
+
+## Getting started
+
+```bash
+pnpm install
+# install git hooks (commit-msg + pre-commit)
+pnpm exec pre-commit install --hook-type pre-commit --hook-type commit-msg
+pnpm dev
+```
+
+## Commands
+
+| Command           | What it does                                                        |
+| ----------------- | ------------------------------------------------------------------- |
+| `pnpm dev`        | Start the Vite dev server with HMR.                                 |
+| `pnpm build`      | Type-check (`tsc -b`) and build the production bundle to `dist/`.   |
+| `pnpm preview`    | Serve the built `dist/` locally to verify the production output.    |
+| `pnpm lint`       | Run ESLint across the repo.                                         |
+| `pnpm typecheck`  | Type-check only (`tsc -b`), no build output.                        |
+| `pnpm test`       | Run the Vitest unit suite once.                                     |
+| `pnpm test:watch` | Run Vitest in watch mode.                                           |
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
+and are validated by commitlint via a git hook. The same `lint`, `build`, and
+`test` commands run in CI on every push and pull request.
+
+## About the Vite template
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
