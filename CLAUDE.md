@@ -43,7 +43,8 @@ Not enabled. See `README.md` if/when adding it.
 - **Conventional Commits** are enforced. `commitlint.config.js` extends `@commitlint/config-conventional`, so commit headers must look like `feat: ...`, `fix(scope): ...`, `chore: ...`, etc.
 - **pre-commit framework** (`.pre-commit-config.yaml`) wires local hooks:
   - `commit-msg` stage → `pnpm exec commitlint --edit` validates the message.
-  - `pre-commit` stage → `pnpm lint`, `pnpm typecheck`, and `pnpm test` (whole-repo, not staged-file-scoped, so they match CI exactly).
+  - `pre-commit` stage → `eslint --fix` on staged JS/TS files (auto-fixing), then `pnpm typecheck` and `pnpm test` (whole-repo, matching CI).
+- Lint is the one intentional pre-commit/CI divergence: locally it auto-fixes staged files; CI runs whole-repo `pnpm lint` as the backstop. Both use the same `eslint.config.js`, so the fixed code a commit produces is exactly what CI re-checks. typecheck and test are identical commands on both sides.
 - New contributors must run `pre-commit install --hook-type pre-commit --hook-type commit-msg` once after cloning.
 - **Do not bypass with `--no-verify`.** A Claude PreToolUse hook (`.claude/hooks/block-no-verify.sh`, wired in `.claude/settings.json`) rejects `git commit --no-verify` and `-n` to keep the gates honest. Fix the underlying hook failure instead.
 

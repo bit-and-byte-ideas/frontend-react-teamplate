@@ -1,5 +1,9 @@
-# Hooks deliberately invoke the same pnpm scripts that CI runs
+# typecheck and test invoke the same pnpm scripts CI runs
 # (.github/workflows/ci.yml) so local commits and CI cannot disagree.
+# Lint is the one intentional exception: locally it runs `eslint --fix`
+# on staged files for auto-fixing DX; CI runs whole-repo `pnpm lint`
+# (`eslint .`) as the backstop. Same binary, same eslint.config.js, so
+# the fixed result a commit produces is exactly what CI re-checks.
 repos:
   - repo: local
     hooks:
@@ -11,14 +15,13 @@ repos:
         stages: [commit-msg]
         pass_filenames: true
 
-      - id: lint
-        name: lint (pnpm lint)
-        description: ESLint over the whole repo (same command as CI).
-        entry: pnpm lint
+      - id: eslint
+        name: eslint (staged, --fix)
+        description: Lint and auto-fix staged JS/TS files.
+        entry: pnpm exec eslint --fix --no-warn-ignored
         language: system
-        always_run: true
-        pass_filenames: false
-        require_serial: true
+        files: \.(ts|tsx|js|jsx|mjs|cjs)$
+        pass_filenames: true
 
       - id: typecheck
         name: typecheck (pnpm typecheck)
