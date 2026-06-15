@@ -1,3 +1,5 @@
+# Hooks deliberately invoke the same pnpm scripts that CI runs
+# (.github/workflows/ci.yml) so local commits and CI cannot disagree.
 repos:
   - repo: local
     hooks:
@@ -9,18 +11,28 @@ repos:
         stages: [commit-msg]
         pass_filenames: true
 
-      - id: eslint
-        name: eslint (staged)
-        description: Lint and auto-fix staged JS/TS files.
-        entry: pnpm exec eslint --fix --no-warn-ignored
+      - id: lint
+        name: lint (pnpm lint)
+        description: ESLint over the whole repo (same command as CI).
+        entry: pnpm lint
         language: system
-        files: \.(ts|tsx|js|jsx|mjs|cjs)$
-        pass_filenames: true
+        always_run: true
+        pass_filenames: false
+        require_serial: true
 
-      - id: tsc
-        name: tsc -b
-        description: Type-check the project on every commit.
-        entry: pnpm exec tsc -b
+      - id: typecheck
+        name: typecheck (pnpm typecheck)
+        description: tsc -b project type-check (the type-check half of the build).
+        entry: pnpm typecheck
+        language: system
+        always_run: true
+        pass_filenames: false
+        require_serial: true
+
+      - id: test
+        name: test (pnpm test)
+        description: Vitest unit tests (same command as CI).
+        entry: pnpm test
         language: system
         always_run: true
         pass_filenames: false
