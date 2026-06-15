@@ -19,9 +19,9 @@ repos:
 
       - id: tsc
         name: tsc -b
-        description: Type-check the project.
+        description: Type-check the project on every commit.
         entry: pnpm exec tsc -b
         language: system
-        files: \.(ts|tsx)$
+        always_run: true
         pass_filenames: false
         require_serial: true
