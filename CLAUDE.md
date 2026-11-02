@@ -48,6 +48,15 @@ Not enabled. See `README.md` if/when adding it.
 - New contributors must run `pre-commit install --hook-type pre-commit --hook-type commit-msg` once after cloning.
 - **Do not bypass with `--no-verify`.** A Claude PreToolUse hook (`.claude/hooks/block-no-verify.sh`, wired in `.claude/settings.json`) rejects `git commit --no-verify` and `-n` to keep the gates honest. Fix the underlying hook failure instead.
 
-## CI
+## CI and deployment
 
 `.github/workflows/ci.yml` runs on push/PR to `main`: `pnpm lint`, `pnpm build`, `pnpm test` — the same scripts the pre-commit hooks use. pnpm is pinned via the `packageManager` field in `package.json`, which both `corepack` locally and `pnpm/action-setup` in CI honor.
+
+The site deploys to **Azure Static Web Apps** (static `dist/` upload, `skip_app_build: true`):
+
+- `.github/workflows/deploy-app-dev.yml` deploys on every push to `main` (and manually). It runs `scripts/add-noindex-header.mjs` so the dev site is never indexed.
+- `.github/workflows/deploy-app-prod.yml` deploys when a GitHub release is published, or manually for an existing `v*` release tag. Never add a branch/SHA trigger to it.
+- Both jobs declare `environment: dev` / `environment: prod`. Per environment they read the **secret** `AZURE_STATIC_WEB_APPS_API_TOKEN` (the Static Web App's deployment token — dev and prod differ, so it is never a repository-level secret) and the **variable** `SITE_URL` (public URL; shown on the deployment and passed to the build as `VITE_SITE_URL`). The environments, secrets and variables are created per repository — see the "Creating a new website" guide in the Confluence Guidance Documents.
+- Azure resources, DNS and custom domains live in `bit-and-byte-ideas/platform-foundation`, not in this repo.
+- `public/staticwebapp.config.json` holds the security headers (strict CSP: no inline scripts or styles, same-origin only), cache headers and the real-404 mapping. Extend `script-src`/`connect-src`/`img-src`/`frame-src` deliberately when adding a third-party origin. An app that adds client-side routing must also add a `navigationFallback`.
+- Workflow actions are pinned to commit SHAs (Dependabot, `.github/dependabot.yml`, bumps SHA and version comment). Keep `permissions: contents: read` and `persist-credentials: false`.

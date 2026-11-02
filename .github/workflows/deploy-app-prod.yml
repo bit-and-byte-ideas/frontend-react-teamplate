@@ -1,0 +1,69 @@
+name: Deploy App (prod)
+
+# Deploys the PROD Azure Static Web App when a GitHub release is published, or manually for an
+# existing release tag. Needs, in the GitHub environment `prod` (Settings -> Environments):
+#   secret   AZURE_STATIC_WEB_APPS_API_TOKEN  deployment token of the prod Static Web App
+#   variable SITE_URL                         public URL of the site, e.g. https://example.com
+# Add required reviewers to the `prod` environment so every run needs an approval.
+on:
+  release:
+    types: [published]
+  # Manual runs re-deploy an existing release tag without cutting a new release.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Existing release tag to deploy, e.g. v0.2.2
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-app-prod-${{ github.ref }}
+  cancel-in-progress: false # never kill a half-finished production deploy
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    # Manual runs may only deploy release tags (v*), never a branch.
+    if: github.event_name == 'release' || startsWith(inputs.ref, 'v')
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+      url: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Manual runs resolve the input as a tag only, so a branch or SHA cannot be deployed.
+          ref: ${{ inputs.ref && format('refs/tags/{0}', inputs.ref) || github.ref }}
+          persist-credentials: false
+
+      # pnpm version is read from the "packageManager" field in package.json.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Gate (lint, build, unit tests)
+        env:
+          # Optional: read it in the app as import.meta.env.VITE_SITE_URL (canonical/OG URLs).
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          pnpm lint
+          pnpm build
+          pnpm test
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@4d27395796ac319302594769cfe812bd207490b1 # v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: dist
+          skip_app_build: true

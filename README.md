@@ -35,6 +35,40 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 and are validated by commitlint via a git hook. The same `lint`, `build`, and
 `test` commands run in CI on every push and pull request.
 
+## Deployment
+
+The site deploys to [Azure Static Web Apps](https://learn.microsoft.com/azure/static-web-apps/)
+through two GitHub Actions workflows:
+
+| Workflow                | Trigger                                                      | GitHub environment |
+| ----------------------- | ------------------------------------------------------------ | ------------------ |
+| `deploy-app-dev.yml`    | every push to `main`, or manually                            | `dev`              |
+| `deploy-app-prod.yml`   | a GitHub release is published, or manually for a `v*` tag    | `prod`             |
+
+Each GitHub environment needs:
+
+| Kind     | Name                             | Value                                                                    |
+| -------- | -------------------------------- | ------------------------------------------------------------------------ |
+| Secret   | `AZURE_STATIC_WEB_APPS_API_TOKEN` | Deployment token of that environment's Static Web App (never shared)     |
+| Variable | `SITE_URL`                       | Public URL of that environment's site (no trailing slash)                |
+
+The dev deploy adds an `X-Robots-Tag: noindex` header so only production is indexable.
+Security headers, caching and the 404 page are configured in
+`public/staticwebapp.config.json`. Azure resources, DNS and custom domains are managed in
+`bit-and-byte-ideas/platform-foundation`.
+
+### Starting a new site from this template
+
+1. **Use this template** on GitHub to create the new repository, then clone it.
+2. Rename the package in `package.json` and the `<title>` in `index.html`; replace the demo
+   `App`, its test and `src/assets/`.
+3. Provision the dev and prod Static Web Apps in `platform-foundation` and copy their
+   deployment tokens into the repo's `dev` and `prod` environments.
+4. Add the `SITE_URL` variable to each environment and required reviewers to `prod`.
+
+The step-by-step checklist (including branch protection and the first deploy) is the
+"Creating a new website" page in the team's Confluence Guidance Documents.
+
 ## About the Vite template
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
