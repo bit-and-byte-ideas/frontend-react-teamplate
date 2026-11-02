@@ -1,0 +1,41 @@
+# Weekly version updates. Security updates are switched on in the repository settings and run
+# regardless of this schedule and cooldown.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # pnpm refuses versions younger than its minimum release age (1 day by default).
+    cooldown:
+      default-days: 3
+    # A dependency goes to the first group it matches. The lockstep groups come first: react-dom
+    # requires the same react version, and @vitest/coverage-v8 requires the exact vitest version.
+    groups:
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom']
+      vitest:
+        patterns: ['vitest', '@vitest/*']
+      by-dependency:
+        group-by: dependency-name
+    ignore:
+      # @types/node follows the Node runtime (24 in CI); bump its major with the runtime.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+    commit-message:
+      prefix: build
+      include: scope
+
+  # Workflow actions are pinned to commit SHAs; Dependabot updates the SHA and its version comment.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+      include: scope
